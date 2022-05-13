@@ -5,16 +5,22 @@
     autoComplete="off"
   >
     <div class="mt-4">
-      <label htmlFor="{name}" className="block"> City </label>
+      <label for="city" className="block"> City </label>
       <input
         @focus="this.hideErrorMessage"
         class="focus:border-yellow-600 border-gray-300, transition-all duration-200 py-1.5 mt-1 w-64 max-w-xs outline-none px-1.5 rounded-sm border focus:outline-none focus:border"
         v-model="city"
+        id="city"
       />
       <span
         v-show="this.cityInvalid"
         class="text-red-700 font-medium text-sm block mt-1"
         >Please provide a valid city name</span
+      >
+      <span
+        v-show="this.cityAlreadyAdded"
+        class="text-red-700 font-medium text-sm block mt-1"
+        >This city is already on your list!</span
       >
     </div>
 
@@ -29,6 +35,8 @@ export default {
   name: 'AddCityForm',
   props: {
     submitFn: Function,
+    hideError: Function,
+    cityAlreadyAdded: Boolean,
   },
   components: {
     Button,
@@ -61,6 +69,7 @@ export default {
 
     hideErrorMessage() {
       this.cityInvalid = false;
+      this.hideError();
     },
   },
 };

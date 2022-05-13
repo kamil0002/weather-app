@@ -5,13 +5,20 @@
     >
       Create cities watchlist
     </h1>
-    <AddCityForm :submitFn="onSubmit" />
+    <AddCityForm
+      :submitFn="onSubmit"
+      :hideError="hideError"
+      :cityAlreadyAdded="this.cityAlreadyAdded"
+    />
     <div
-      :key="city.name"
-      v-for="city in this.cities"
       className="mt-4 flex space-x-4 w-5/6 mx-auto flex-wrap justify-center max-h-80 overflow-y-scroll py-4"
     >
-      <CityChip :cityName="city" />
+      <CityChip
+        :key="city.name"
+        v-for="city in this.cities"
+        :cityName="city"
+        :handleClick="this.handleChipDelete.bind(this, city)"
+      />
     </div>
   </div>
 </template>
@@ -29,11 +36,25 @@ export default {
   data() {
     return {
       cities: [],
+      cityAlreadyAdded: false,
     };
   },
   methods: {
     onSubmit(city) {
+      if (this.cities.indexOf(city) !== -1) {
+        this.cityAlreadyAdded = true;
+        return;
+      }
+
       this.cities = [...this.cities, city];
+    },
+
+    hideError() {
+      this.cityAlreadyAdded = false;
+    },
+
+    handleChipDelete(clickedCity) {
+      this.cities = this.cities.filter(city => city !== clickedCity);
     },
   },
 };
