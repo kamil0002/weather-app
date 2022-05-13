@@ -20,6 +20,13 @@
         :handleClick="this.handleChipDelete.bind(this, city)"
       />
     </div>
+    <button
+      @click="this.handleDataFetch"
+      v-if="this.cities.length > 0"
+      class="mx-auto uppercase block font-bold text-white ring-yellow-400 hover:ring-offset-2 hover:ring-2 py-2 px-7 mt-7 rounded-md bg-yellow-500 transition duration-150"
+    >
+      Load countries
+    </button>
   </div>
 </template>
 
@@ -29,6 +36,9 @@ import CityChip from './../CityChip/CityChip.vue';
 
 export default {
   name: 'CreateCitiesList',
+  props: {
+    fetchCountriesFromFile: Function,
+  },
   components: {
     AddCityForm,
     CityChip,
@@ -55,6 +65,10 @@ export default {
 
     handleChipDelete(clickedCity) {
       this.cities = this.cities.filter(city => city !== clickedCity);
+    },
+
+    handleDataFetch() {
+      this.fetchCountriesFromFile(Object.values(this.cities));
     },
   },
 };
