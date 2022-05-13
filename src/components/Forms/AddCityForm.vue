@@ -56,6 +56,7 @@ export default {
         return;
       }
       this.submitFn(this.city);
+      this.city = '';
     },
 
     hideErrorMessage() {
