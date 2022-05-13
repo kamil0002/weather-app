@@ -1,15 +1,24 @@
 <template>
   <div>
-    <p>Weather {{ userLoggedIn }}</p>
+    <div class="block mt-16">
+      <CreateCitiesList />
+    </div>
   </div>
 </template>
 
 <script>
+import CreateCitiesList from './../components/CreateCitiesList/CreateCitiesList';
+
 export default {
   name: 'weather-page',
-  props: {
-    userLoggedIn: Boolean,
-    redirect: Function,
+  components: {
+    CreateCitiesList,
+  },
+  created() {
+    // window.addEventListener(
+    //   'beforeunload',
+    //   localStorage.removeItem('authenticated')
+    // );
   },
   methods: {},
 };

@@ -6,7 +6,7 @@
     ]"
     type="submit"
   >
-    {{ content }}
+    {{buttonText}}
   </button>
 </template>
 
@@ -14,7 +14,7 @@
 export default {
   name: 'button-cmp',
   props: {
-    content: String,
+    buttonText: String,
     classes: {
       type: String,
       default: '',

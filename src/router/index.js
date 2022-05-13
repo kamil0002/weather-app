@@ -9,12 +9,10 @@ const routes = [
     name: 'Weather',
     beforeEnter(to, from, next) {
       if (!localStorage.getItem('authenticated')) {
-        console.log('EXECUED');
         next({
           path: '/login',
         });
       } else {
-        console.log('SHOULDNT EXECUTED');
         next();
       }
     },

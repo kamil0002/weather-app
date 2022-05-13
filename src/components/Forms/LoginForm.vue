@@ -39,7 +39,7 @@
         >Password incorrect</span
       >
     </div>
-    <Button content="login"></Button>
+    <Button buttonText="login" />
   </form>
 </template>
 
