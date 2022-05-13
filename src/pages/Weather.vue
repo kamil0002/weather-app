@@ -6,7 +6,7 @@
 
 <script>
 export default {
-  name: 'weather-cmp',
+  name: 'weather-page',
   props: {
     userLoggedIn: Boolean,
     redirect: Function,

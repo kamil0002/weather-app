@@ -9,11 +9,14 @@ const routes = [
     name: 'Weather',
     beforeEnter(to, from, next) {
       if (!localStorage.getItem('authenticated')) {
-        console.log('CALLED');
+        console.log('EXECUED');
         next({
           path: '/login',
         });
-      } else next();
+      } else {
+        console.log('SHOULDNT EXECUTED');
+        next();
+      }
     },
     component: Weather,
   },
@@ -24,6 +27,5 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 });
-
 
 export default router;
