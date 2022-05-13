@@ -1,17 +1,25 @@
 <template>
   <form
-    class="py-8 flex flex-col items-center"
+    :class="[singleCity ? 'flex-row items-center justify-center lg:justify-start': 'py-8 flex-col', 'flex']"
     @submit="submitForm"
     autoComplete="off"
   >
-    <div class="mt-4">
-      <label for="city" className="block"> City </label>
-      <input
-        @focus="this.hideErrorMessage"
-        class="focus:border-yellow-600 border-gray-300, transition-all duration-200 py-1.5 mt-1 w-64 max-w-xs outline-none px-1.5 rounded-sm border focus:outline-none focus:border"
-        v-model="city"
-        id="city"
-      />
+    <div class="[singleCity ? 'flex': '','mt-4 ']">
+      <label for="city" class="block">{{ singleCity ? '' : 'City' }}</label>
+      <div class="flex items-center">
+        <img
+          class="ml-2 absolute"
+          src="@/assets/magnifying-glass.svg"
+          alt="magnifying glass"
+        />
+        <input
+          @focus="this.hideErrorMessage"
+          :class="[placeholder ? 'w-44 sm:w-64 pl-9 text-xs sm:text-base' : '' ,'focus:border-yellow-600 border-gray-300, transition-all duration-200 py-1.5 mt-1 w-64 max-w-xs outline-none px-1.5 rounded-sm border focus:outline-none focus:border']"
+          v-model="city"
+          id="city"
+          :placeholder="placeholder"
+        />
+      </div>
       <span
         v-show="this.cityInvalid"
         class="text-red-700 font-medium text-sm block mt-1"
@@ -24,7 +32,7 @@
       >
     </div>
 
-    <Button buttonText="add" />
+    <Button :classes="singleCity ? `bg-blue-500 ml-7` : ``" buttonText="add" />
   </form>
 </template>
 
@@ -37,6 +45,8 @@ export default {
     submitFn: Function,
     hideError: Function,
     cityAlreadyAdded: Boolean,
+    singleCity: Boolean,
+    placeholder: String,
   },
   components: {
     Button,
