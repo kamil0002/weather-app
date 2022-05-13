@@ -3,12 +3,23 @@
     <div class="block mt-16" v-show="this.weather?.length === 0">
       <CreateCitiesList :fetchCountriesFromFile="fetchCountriesFromFile" />
     </div>
+    <div
+      class="wrapper w-full sm:w-11/12 mx-auto rounded-md flex justify-stretch items-center"
+      v-show="this.weather?.length > 0"
+    >
+      <div
+        class="left-panel-wrapper z-10 bg-white relative shadow-md rounded-lg w-full px-3 sm:px-7 lg:px-4 py-10 sm:my-10 flex flex-col lg:flex-row lg:justify-around max-w-7xl mx-auto"
+      >
+        <UserInformation />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import CreateCitiesList from './../components/CreateCitiesList/CreateCitiesList';
-import citiesJson from '@/dev-data/city.list.json';
+// import citiesJson from '@/dev-data/city.list.json';
+import CreateCitiesList from '@/components/CreateCitiesList/CreateCitiesList';
+import UserInformation from '@/components/UserInformation/UserInformation';
 import axios from 'axios';
 import { API_KEY } from '@/constants';
 
@@ -16,11 +27,12 @@ export default {
   name: 'weather-page',
   components: {
     CreateCitiesList,
+    UserInformation,
   },
   data() {
     return {
       observedCities: [],
-      weather: [],
+      weather: ['Test'],
       citiesFounded: false,
       error: {
         status: false,
@@ -103,3 +115,13 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.wrapper {
+  min-height: 100vh;
+}
+
+.left-panel-wrapper {
+  min-height: 750px;
+}
+</style>
