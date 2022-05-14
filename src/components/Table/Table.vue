@@ -4,9 +4,12 @@
     style="max-height: 420px"
   >
     <li
-      v-for="city in data"
+      v-for="(city, index) in data"
       :key="city.id + Math.random()"
-      class="flex text-gray-700 space-x-3 sm:space-x-10 w-max text-xs sm:text-sm lg:space-x-14 py-4 pr-5"
+      :class="[
+        index > 0 ? 'border-t' : '' > 0,
+        'flex bg-white text-gray-700 space-x-3 sm:space-x-10 w-max text-xs sm:text-sm lg:space-x-14 py-4 pr-5',
+      ]"
     >
       <span class="w-28 md:w-32" data-name>{{ city.name }}</span>
       <span class="flex w-16 sm:w-20 items-center">

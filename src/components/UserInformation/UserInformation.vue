@@ -26,6 +26,9 @@ export default {
     return { cookies };
   },
   name: 'UserInformation',
+  props: {
+    stopAPIRefreshing: Function
+  },
   data() {
     return {
       LOGIN,
@@ -34,6 +37,7 @@ export default {
 
   methods: {
     handleLogout() {
+      this.stopAPIRefreshing();
       this.cookies.remove('auth-token');
       this.$router.push('/login');
     },

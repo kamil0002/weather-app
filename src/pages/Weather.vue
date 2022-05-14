@@ -14,7 +14,7 @@
       v-show="this.weather?.length > 0"
     >
       <div class="lg:h-188">
-        <UserInformation />
+        <UserInformation :stopAPIRefreshing="_stopAPIRefreshing" />
         <div class="mt-12">
           <div class="flex items-center justify-center lg:justify-start">
             <AddCityForm
@@ -30,6 +30,12 @@
             </h2>
             <div class="mt-8" v-show="this.weather">
               <h3 class="my-5 font-medium">Your cities</h3>
+              <button
+                @click="clearCitiesList"
+                class=" px-2 py-1.5 text-xs sm:text-sm sm:px-3 sm:py-1.5 bg-sky-500 rounded-md text-white block ml-auto mb-3 uppercase hover:-translate-y-1 hover:shadow-md transform transition-transform duration-300 active:transform-y-1 focus:transform-y-1 font-medium"
+              >
+                clear cities
+              </button>
               <Table
                 :data="this.weather"
                 :showInTimeData="this.showInTimeData"
@@ -59,7 +65,9 @@
           <h5 class="mt-8 mb-3 text-3xl text-cyan-600">
             {{ this.hourlyData?.city || '' }}
           </h5>
-          <span class="text-lg text-blue-500 mb-5">{{ this.hourlyData?.temp }} °C</span>
+          <span class="text-lg text-blue-500 mb-5"
+            >{{ this.hourlyData?.temp?.toFixed(1) }} °C</span
+          >
           <div class="mt-4 flex flex-col justify-around">
             <div>
               <h6>Temperature</h6>
@@ -89,6 +97,7 @@ import AddCityForm from '@/components/Forms/AddCityForm';
 import Table from '@/components/Table/Table';
 import BarChart from '@/components/BarChart/BarChart';
 import LineChart from '@/components/LineChart/LineChart';
+import { API_REFRESH_RATE } from '../constants';
 
 export default {
   name: 'weather-page',
@@ -112,10 +121,19 @@ export default {
         status: false,
         msg: '',
       },
+      intervalId: null,
     };
   },
   mounted() {
-    // console.log(this.cookies.get('auth-token'));
+    const storageData = this._getStorageData();
+    if (storageData?.length > 0) {
+      this.observedCities = storageData;
+      this.getAPIData();
+      this.intervalId = setInterval(
+        () => this.getAPIData(),
+        API_REFRESH_RATE * 1000
+      );
+    }
   },
   methods: {
     _setStorageData(data) {
@@ -127,6 +145,14 @@ export default {
       if (!weatherData) return;
 
       return weatherData;
+    },
+
+    _emptyStorage() {
+      localStorage.removeItem('weatherData');
+    },
+
+    _stopAPIRefreshing() {
+      clearInterval(this.intervalId);
     },
 
     _showHideError(msg) {
@@ -177,7 +203,6 @@ export default {
     },
 
     _setChartData() {
-      console.log(this.hourlyData);
       const labels = this.hourlyData.weather.map(data => data.time);
       const data = this.hourlyData.weather.map(data => data.temp);
       this.lineChartData = {
@@ -192,6 +217,13 @@ export default {
           },
         ],
       };
+    },
+
+    clearCitiesList() {
+      this.weather = [];
+      this.observedCities = [];
+      clearInterval(this.intervalId);
+      this._emptyStorage();
     },
 
     async handleCityAdd(cityName, isCityInvalid) {
@@ -218,6 +250,13 @@ export default {
 
         await this.getAPIData();
 
+        this._stopAPIRefreshing();
+
+        this.intervalId = setInterval(
+          () => this.getAPIData(),
+          API_REFRESH_RATE * 1000
+        );
+
         setTimeout(() => {
           this.$el.querySelector('ul').scrollTop =
             this.$el.querySelector('ul').scrollHeight;
@@ -243,7 +282,6 @@ export default {
 
         this._setChartData();
       } catch (err) {
-        console.log(err);
         this._showHideError('Sorry but we could not load the data!');
       }
     },
@@ -296,7 +334,13 @@ export default {
           }`
         );
 
-      if (manyCities) this.getAPIData();
+      if (manyCities) {
+        this.getAPIData();
+        this.intervalId = setInterval(
+          () => this.getAPIData(),
+          API_REFRESH_RATE * 1000
+        );
+      }
 
       if (this.observedCities.length !== cities.length) {
         this._showHideError('Sorry, but we could not load all the cities.');
