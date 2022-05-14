@@ -32,7 +32,7 @@
               <h3 class="my-5 font-medium">Your cities</h3>
               <button
                 @click="clearCitiesList"
-                class=" px-2 py-1.5 text-xs sm:text-sm sm:px-3 sm:py-1.5 bg-sky-500 rounded-md text-white block ml-auto mb-3 uppercase hover:-translate-y-1 hover:shadow-md transform transition-transform duration-300 active:transform-y-1 focus:transform-y-1 font-medium"
+                class="px-2 py-1.5 text-xs sm:text-sm sm:px-3 sm:py-1.5 bg-sky-500 rounded-md text-white block ml-auto mb-3 uppercase hover:-translate-y-1 hover:shadow-md transform transition-transform duration-300 active:transform-y-1 focus:transform-y-1 font-medium"
               >
                 clear cities
               </button>
@@ -47,7 +47,13 @@
       <div
         class="right-panel-wrapper mt-12 text-center font-medium relative lg:w-80 pb-10 mb-12"
       >
-        <div v-show="!this.hourlyData?.city">
+        <div
+          v-show="this.loading"
+          class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+        >
+          <Spinner />
+        </div>
+        <div v-show="!this.hourlyData?.city && !this.loading">
           <h5
             className="mt-5 lg:mt-0 lg:absolute lg:top-1/2 lg:transform lg:-translate-y-1/2 font-normal text-gray-500"
           >
@@ -59,7 +65,7 @@
           </h5>
         </div>
         <div
-          v-show="this.hourlyData?.city"
+          v-show="this.hourlyData?.city && !this.loading"
           class="mt-4 flex flex-col justify-around"
         >
           <h5 class="mt-8 mb-3 text-3xl text-cyan-600">
@@ -91,12 +97,14 @@
 import citiesJson from '@/dev-data/city.list.json';
 import CreateCitiesList from '@/components/CreateCitiesList/CreateCitiesList';
 import UserInformation from '@/components/UserInformation/UserInformation';
-import axios from 'axios';
-import { API_KEY } from '@/constants';
 import AddCityForm from '@/components/Forms/AddCityForm';
 import Table from '@/components/Table/Table';
 import BarChart from '@/components/BarChart/BarChart';
 import LineChart from '@/components/LineChart/LineChart';
+import Spinner from '@/components/Spinner/Spinner';
+
+import axios from 'axios';
+import { API_KEY } from '@/constants';
 import { API_REFRESH_RATE } from '../constants';
 
 export default {
@@ -108,9 +116,11 @@ export default {
     Table,
     BarChart,
     LineChart,
+    Spinner,
   },
   data() {
     return {
+      loading: false,
       observedCities: [],
       weather: [],
       lineChartData: {},
@@ -222,6 +232,7 @@ export default {
     clearCitiesList() {
       this.weather = [];
       this.observedCities = [];
+      this.hourlyData = {};
       clearInterval(this.intervalId);
       this._emptyStorage();
     },
@@ -268,6 +279,7 @@ export default {
 
     async showInTimeData({ lat, lon, city }) {
       try {
+        this.loading = true;
         const dataOverTime = await this._renderRequestForInTimeData(lat, lon);
 
         const { temp } = this.weather.find(data => data.name === city);
@@ -283,6 +295,8 @@ export default {
         this._setChartData();
       } catch (err) {
         this._showHideError('Sorry but we could not load the data!');
+      } finally {
+        this.loading = false;
       }
     },
 
