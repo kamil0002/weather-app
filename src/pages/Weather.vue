@@ -1,18 +1,18 @@
 <template>
-  <div class="flex items-stretch sm:items-center justify-stretch min-h-screen">
-    <div class="block-wrapper mt-16 w-full" v-show="this.weather?.length === 0">
+  <div class="flex items-stretch sm:items-center justify-center min-h-screen">
+    <div class="block-wrapper py-24 w-full" v-show="this.weather?.length === 0">
       <CreateCitiesList :fetchCitiesFromFile="fetchCitiesFromFile" />
     </div>
     <div
-      class="content-wrapper z-10 bg-white relative shadow-md rounded-lg w-full mx-0 my-0 sm:my-10 sm:mx-10 px-3 sm:px-7 lg:px-4 py-10 flex flex-col lg:flex-row lg:justify-around lg:items-center max-w-7xl"
+      v-show="this.error.status"
+      class="bg-red-300 text-red-900 fixed top-7 left-1/2 transform -translate-x-1/2 z-20 px-3 py-1.5 rounded-lg border border-red-500"
+    >
+      {{ this.error.msg }}
+    </div>
+    <div
+      class="content-wrapper z-10 bg-white relative shadow-md rounded-lg w-full mx-auto my-0 sm:my-10 sm:mx-10 px-3 sm:px-7 lg:px-4 py-10 flex flex-col lg:flex-row lg:justify-around lg:items-center max-w-7xl"
       v-show="this.weather?.length > 0"
     >
-      <div
-        v-show="this.error.status"
-        class="bg-red-300 text-red-900 fixed top-7 left-1/2 transform -translate-x-1/2 z-20 px-3 py-1.5 rounded-lg border border-red-500"
-      >
-        {{ this.error.msg }}
-      </div>
       <div class="lg:h-188">
         <UserInformation />
         <div class="mt-12">
@@ -67,7 +67,6 @@
               <div
                 class="flex justify-center mx-auto md:w-80 lg:w-80 h-64 mt-4 mb-10"
               >
-                <!-- <LineChart hourlyData="{hourlyData[1]}" /> -->
                 <LineChart :chartData="lineChartData" />
               </div>
             </div>
@@ -122,6 +121,9 @@ export default {
     //   localStorage.removeItem('authenticated')
     // );
   },
+  mounted() {
+    // console.log(this.cookies.get('auth-token'));
+  },
   methods: {
     _showHideError(msg) {
       this.error = { status: true, msg };
@@ -130,7 +132,7 @@ export default {
       }, 2000);
     },
 
-    _renderRequestsForCountries() {
+    _renderRequestsForCities() {
       return this.observedCities.map(({ id }) => {
         return axios.get(
           `https://api.openweathermap.org/data/2.5/weather?id=${id}&units=metric&appid=${API_KEY}`
@@ -143,7 +145,7 @@ export default {
         `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,daily,alerts&units=metric&appid=${API_KEY}`
       );
     },
-
+    /* eslint-disable */
     _attachWeatherToCities(weatherData) {
       return this.observedCities.map((data, i) => ({
         ...data,
@@ -238,13 +240,13 @@ export default {
     async getAPIData() {
       try {
         await Promise.all(
-          this._renderRequestsForCountries(this.observedCities)
+          this._renderRequestsForCities(this.observedCities)
         ).then(citiesWeather => {
           const updatedCitiesList = this._attachWeatherToCities(citiesWeather);
           this.weather = updatedCitiesList;
         });
       } catch (err) {
-        console.log(err);
+        if (err.message.includes('undefined')) return;
         this._showHideError('We could not load the resources');
       }
     },
@@ -270,13 +272,16 @@ export default {
           }
         }
       });
-
       if (!this.citiesFounded)
         this._showHideError(
           `Sorry but our database does not include selected ${
             cities.length > 1 ? 'cities' : 'city'
           }`
         );
+
+      if(this.observedCities.length !== cities.length) {
+        this._showHideError('Sorry, but we could not load all the cities.')
+      }
 
       if (Object.keys(returnedCity).length > 0) return returnedCity;
     },

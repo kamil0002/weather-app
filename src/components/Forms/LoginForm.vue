@@ -44,11 +44,17 @@
 </template>
 
 <script>
-import Button from './../Button/Button.vue';
+import { useCookies } from 'vue3-cookies';
 
+import Button from './../Button/Button.vue';
 import { LOGIN, PASSWORD } from '../../constants';
 
 export default {
+  setup() {
+    const { cookies } = useCookies();
+    return { cookies };
+  },
+
   name: 'LoginForm',
   components: {
     Button,
@@ -73,6 +79,11 @@ export default {
 
       if (this.isLoginValid && this.isPasswordValid) {
         localStorage.setItem('authenticated', JSON.stringify(true));
+        this.cookies.set(
+          'auth-token',
+          `${String(Date.now()).slice(-10)}${Math.random()}`.replace('.', ''),
+          60 + 30
+        );
         this.$router.push('/');
       }
     },

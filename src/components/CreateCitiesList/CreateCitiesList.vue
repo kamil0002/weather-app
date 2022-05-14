@@ -11,7 +11,7 @@
       :cityAlreadyAdded="this.cityAlreadyAdded"
     />
     <div
-      className="mt-4 flex space-x-4 w-5/6 mx-auto flex-wrap justify-center max-h-80 overflow-y-scroll py-4"
+      className="mt-4 flex space-x-4 w-11/12 sm:w-5/6 mx-auto flex-wrap justify-center max-h-80 overflow-y-scroll py-4"
     >
       <CityChip
         :key="city.name"

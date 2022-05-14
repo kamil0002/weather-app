@@ -1,14 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useCookies } from 'vue3-cookies';
 
 import Login from './../pages/Login';
 import Weather from './../pages/Weather';
+
+const { cookies } = useCookies();
 
 const routes = [
   {
     path: '/',
     name: 'Weather',
     beforeEnter(to, from, next) {
-      if (!localStorage.getItem('authenticated')) {
+      if (!cookies.get('auth-token')) {
         next({
           path: '/login',
         });
@@ -18,7 +21,20 @@ const routes = [
     },
     component: Weather,
   },
-  { path: '/login', name: 'Login', component: Login },
+  {
+    path: '/login',
+    name: 'Login',
+    beforeEnter(to, from, next) {
+      if (cookies.get('auth-token')) {
+        next({
+          path: '/',
+        });
+      } else {
+        next('/login');
+      }
+    },
+    component: Login,
+  },
 ];
 
 const router = createRouter({
