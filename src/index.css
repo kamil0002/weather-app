@@ -19,6 +19,12 @@
   cursor: pointer;
 }
 
+html,
+body,
+#app {
+  min-height: 100vh;
+}
+
 body {
   background: #f5f5f5;
 }

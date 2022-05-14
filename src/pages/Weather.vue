@@ -1,10 +1,10 @@
-<template #scroll-to-view="props">
-  <div>
+<template>
+  <div class="flex items-stretch sm:items-center justify-center min-h-screen">
     <div class="block-wrapper block mt-16" v-show="this.weather?.length === 0">
       <CreateCitiesList :fetchCitiesFromFile="fetchCitiesFromFile" />
     </div>
     <div
-      class="content-wrapper w-full sm:w-11/12 justify-stretch items-center z-10 bg-white relative shadow-md rounded-lg px-3 sm:px-7 lg:px-4 py-10 sm:my-10 flex flex-col lg:flex-row lg:justify-around max-w-7xl mx-auto"
+      class="content-wrapper z-10 bg-white relative shadow-md rounded-lg w-full mx-0 my-0 sm:my-10 sm:mx-10 px-3 sm:px-7 lg:px-4 py-10 flex flex-col lg:flex-row lg:justify-around lg:items-center max-w-7xl"
       v-show="this.weather?.length > 0"
     >
       <div
@@ -39,8 +39,7 @@
         </div>
       </div>
       <div
-        class="mt-12 text-center font-medium relative lg:w-80 pb-10 mb-12"
-        style="height: 670px"
+        class="right-panel-wrapper mt-12 text-center font-medium relative lg:w-80 pb-10 mb-12"
       >
         <div v-show="this.hourlyData.length === 0">
           <h5
@@ -66,9 +65,10 @@
             <div>
               <h6>Temperature</h6>
               <div
-                class="flex justify-center mx-auto md:w-80 lg:max-w-sm h-64 mt-4 mb-10"
+                class="flex justify-center mx-auto md:w-80 lg:w-80 h-64 mt-4 mb-10"
               >
                 <!-- <LineChart hourlyData="{hourlyData[1]}" /> -->
+                <LineChart :chartData="lineChartData" />
               </div>
             </div>
             <div>
@@ -90,6 +90,7 @@ import { API_KEY } from '@/constants';
 import AddCityForm from '@/components/Forms/AddCityForm';
 import Table from '@/components/Table/Table';
 import BarChart from '@/components/BarChart/BarChart';
+import LineChart from '@/components/LineChart/LineChart';
 
 export default {
   name: 'weather-page',
@@ -99,6 +100,7 @@ export default {
     AddCityForm,
     Table,
     BarChart,
+    LineChart,
   },
   data() {
     return {
@@ -114,6 +116,18 @@ export default {
           },
         },
       ],
+      lineChartData: {
+        labels: ['9 AM', '11 AM', '9 AM', '9 AM', '9 AM', '9 AM'],
+        datasets: [
+          {
+            label: 'Celsius Degress',
+            fill: false,
+            data: [86, 114, 106, 106, 107, 111],
+            borderColor: 'rgb(76, 192, 192)',
+            backgroundColor: 'rgba(76, 192, 192, 0.5)',
+          },
+        ],
+      },
       hourlyData: [],
       citiesFounded: false,
       cityAlreadyAdded: false,
@@ -273,14 +287,18 @@ export default {
 
 <style scoped>
 .block-wrapper {
-  min-height: 100vh;
+  min-height: 100vh !important;
 }
 
 .content-wrapper {
-  min-height: 750px;
+  min-height: 750px !important;
 }
 
 .left-panel-wrapper {
-  height: 670px;
+  height: 750px !important;
+}
+
+.right-panel-wrapper {
+  height: 670px !important;
 }
 </style>
