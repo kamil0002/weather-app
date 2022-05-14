@@ -1,10 +1,10 @@
-<template>
+<template #scroll-to-view="props">
   <div>
-    <div class="block mt-16" v-show="this.weather?.length === 0">
+    <div class="block-wrapper block mt-16" v-show="this.weather?.length === 0">
       <CreateCitiesList :fetchCitiesFromFile="fetchCitiesFromFile" />
     </div>
     <div
-      class="wrapper w-full sm:w-11/12 mx-auto rounded-md flex justify-stretch items-center z-10"
+      class="content-wrapper w-full sm:w-11/12 justify-stretch items-center z-10 bg-white relative shadow-md rounded-lg px-3 sm:px-7 lg:px-4 py-10 sm:my-10 flex flex-col lg:flex-row lg:justify-around max-w-7xl mx-auto"
       v-show="this.weather?.length > 0"
     >
       <div
@@ -13,9 +13,7 @@
       >
         {{ this.error.msg }}
       </div>
-      <div
-        class="left-panel-wrapper z-10 bg-white relative shadow-md rounded-lg w-full px-3 sm:px-7 lg:px-4 py-10 sm:my-10 flex flex-col lg:flex-row lg:justify-around max-w-7xl mx-auto"
-      >
+      <div class="left-panel-wrapper">
         <UserInformation />
         <div class="mt-12">
           <div class="flex items-center justify-center lg:justify-start">
@@ -30,21 +28,40 @@
             <h2 class="text-sky-800 tracking-wide font-semibold text-3xl">
               Weather Forecast
             </h2>
-            <div class="mt-8">
+            <div class="mt-8" v-show="this.weather">
               <h3 class="my-5 font-medium">Your cities</h3>
-              <Table :data="this.weather || []" />
+              <Table
+                :data="this.weather"
+                :showInTimeData="this.showInTimeData"
+              />
             </div>
           </div>
         </div>
+      </div>
+      <div
+        class="mt-12 text-center font-medium relative lg:w-80 pb-10 mb-12"
+        style="height: 670px"
+      >
+        <div v-show="this.hourlyData.length === 0">
+          <h5
+            className="mt-5 lg:mt-0 lg:absolute lg:top-1/2 lg:transform lg:-translate-y-1/2 font-normal text-gray-500"
+          >
+            Click on
+            <span className="font-semibold text-sky-700">More</span> button to
+            see hourly weather
+          </h5>
+        </div>
         <div
-          class="mt-12 text-center font-medium relative lg:w-80 pb-10 mb-12"
-          style="height: 670px"
+          v-show="this.hourlyData.length > 0"
+          class="mt-4 flex flex-col justify-around"
         >
           <h4 class="text-sky-800 mt-10 lg:mt-0">
             Keep Track Of Hourly Weather
           </h4>
 
-          <h5 class="my-8 text-xl uppercase text-cyan-600">RZESZÓW</h5>
+          <h5 class="my-8 text-xl uppercase text-cyan-600">
+            {{ this.hourlyData[0] }}
+          </h5>
           <div class="mt-4 flex flex-col justify-around">
             <div>
               <h6>Temperature</h6>
@@ -55,33 +72,7 @@
               </div>
             </div>
             <div>
-              <h6>Humidity</h6>
-              <div class="flex space-x-4 justify-center">
-                <div class="flex flex-col justify-end items-center mt-4 mb-7">
-                  <span class="text-xs">63</span>
-                  <div
-                    class="my-2 bg-sky-300 w-2 rounded-lg"
-                    style="height: 90px"
-                  />
-                  <span class="text-xs">2 AM</span>
-                </div>
-                <div class="flex flex-col justify-end items-center mt-4 mb-7">
-                  <span class="text-xs">63</span>
-                  <div
-                    class="my-2 bg-sky-300 w-2 rounded-lg"
-                    style="height: 90px"
-                  />
-                  <span class="text-xs">2 AM</span>
-                </div>
-                <div class="flex flex-col justify-end items-center mt-4 mb-7">
-                  <span class="text-xs">63</span>
-                  <div
-                    class="my-2 bg-sky-300 w-2 rounded-lg"
-                    style="height: 90px"
-                  />
-                  <span class="text-xs">2 AM</span>
-                </div>
-              </div>
+              <BarChart :data="this.hourlyData" chartTitle="Humidity" />
             </div>
           </div>
         </div>
@@ -96,8 +87,9 @@ import CreateCitiesList from '@/components/CreateCitiesList/CreateCitiesList';
 import UserInformation from '@/components/UserInformation/UserInformation';
 import axios from 'axios';
 import { API_KEY } from '@/constants';
-import AddCityForm from '@/components/Forms/AddCityForm.vue';
+import AddCityForm from '@/components/Forms/AddCityForm';
 import Table from '@/components/Table/Table';
+import BarChart from '@/components/BarChart/BarChart';
 
 export default {
   name: 'weather-page',
@@ -106,11 +98,23 @@ export default {
     UserInformation,
     AddCityForm,
     Table,
+    BarChart,
   },
   data() {
     return {
       observedCities: [],
-      weather: ['Test'],
+      weather: [
+        {
+          name: 'Republic of Poladn',
+          temp: 27.3,
+          humidity: 63,
+          coord: {
+            lat: 27.34234,
+            lon: 21.2342,
+          },
+        },
+      ],
+      hourlyData: [],
       citiesFounded: false,
       cityAlreadyAdded: false,
       error: {
@@ -141,12 +145,36 @@ export default {
       });
     },
 
+    _renderRequestForInTimeData(lat, lon) {
+      return axios.get(
+        `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,daily,alerts&units=metric&appid=${API_KEY}`
+      );
+    },
+
     _attachWeatherToCities(weatherData) {
       return this.observedCities.map((data, i) => ({
         ...data,
         temp: weatherData[i].data.main.temp,
         humidity: weatherData[i].data.main.humidity,
       }));
+    },
+
+    _formatHourlyData(data) {
+      const newData = data.map(({ temp, humidity, dt }) => ({
+        time: new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric',
+          hour12: true,
+        }).format(new Date(dt * 1000)),
+        humidity,
+        temp,
+      }));
+
+      const finalData = newData.filter((_, i) => !(i % 2));
+      return finalData;
+    },
+
+    _scrollTableToView(element) {
+      setTimeout(() => (element.scrollTop = element.scrollHeight + 57), 500);
     },
 
     async handleCityAdd(cityName, isCityInvalid) {
@@ -173,9 +201,25 @@ export default {
 
         await this.getAPIData();
 
-        console.log(this.weather);
+        setTimeout(() => {
+          this.$el.querySelector('ul').scrollTop =
+            this.$el.querySelector('ul').scrollHeight;
+        }, 500);
       } catch (err) {
         this._showHideError('Sorry but we cannot load the city');
+      }
+    },
+
+    async showInTimeData({ lat, lon, city }) {
+      try {
+        const dataOverTime = await this._renderRequestForInTimeData(lat, lon);
+
+        this.hourlyData = [
+          city,
+          this._formatHourlyData(dataOverTime.data.hourly.slice(0, 12)),
+        ];
+      } catch (err) {
+        this._showHideError('Sorry but we could not load the data!');
       }
     },
 
@@ -228,11 +272,15 @@ export default {
 </script>
 
 <style scoped>
-.wrapper {
+.block-wrapper {
   min-height: 100vh;
 }
 
-.left-panel-wrapper {
+.content-wrapper {
   min-height: 750px;
+}
+
+.left-panel-wrapper {
+  height: 670px;
 }
 </style>

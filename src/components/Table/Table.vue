@@ -26,9 +26,10 @@
         {{ city.humidity }}
       </span>
       <button
+        @click="handleInTimeDataDisplay"
         class="text-xs font-medium transform hover:bg-blue-400 hover:text-white hover:-translate-y-0.5 active:translate-y-0.5 focus:translate-y-0.5 px-2 py-1 mr-2 transition duration-300 hover:shadow-md"
-        data-lat="{{city.coord.lat}}"
-        data-lon="{{city.coord.lon}}"
+        :data-lat="city.coord.lat"
+        :data-lon="city.coord.lon"
       >
         More
       </button>
@@ -41,6 +42,25 @@ export default {
   name: 'table-cmp',
   props: {
     data: Array,
+    showInTimeData: Function,
+  },
+
+  methods: {
+    handleInTimeDataDisplay(e) {
+      const { lat } = e.target.dataset;
+      const { lon } = e.target.dataset;
+      const city =
+        e.target.previousSibling.previousSibling.previousSibling.textContent;
+      this.showInTimeData({
+        lat,
+        lon,
+        city,
+      });
+    },
+  },
+
+  scrollToView() {
+    console.log('WElcome!');
   },
 };
 </script>
