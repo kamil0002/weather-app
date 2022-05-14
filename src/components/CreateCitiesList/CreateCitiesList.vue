@@ -37,7 +37,7 @@ import CityChip from './../CityChip/CityChip.vue';
 export default {
   name: 'CreateCitiesList',
   props: {
-    fetchCountriesFromFile: Function,
+    fetchCitiesFromFile: Function,
   },
   components: {
     AddCityForm,
@@ -50,7 +50,8 @@ export default {
     };
   },
   methods: {
-    onSubmit(city) {
+    onSubmit(city, isCityInvalid) {
+      if (isCityInvalid) return;
       if (this.cities.indexOf(city) !== -1) {
         this.cityAlreadyAdded = true;
         return;
@@ -68,7 +69,7 @@ export default {
     },
 
     handleDataFetch() {
-      this.fetchCountriesFromFile(Object.values(this.cities));
+      this.fetchCitiesFromFile(Object.values(this.cities));
     },
   },
 };

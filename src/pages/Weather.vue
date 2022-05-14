@@ -1,12 +1,18 @@
 <template>
   <div>
     <div class="block mt-16" v-show="this.weather?.length === 0">
-      <CreateCitiesList :fetchCountriesFromFile="fetchCountriesFromFile" />
+      <CreateCitiesList :fetchCitiesFromFile="fetchCitiesFromFile" />
     </div>
     <div
-      class="wrapper w-full sm:w-11/12 mx-auto rounded-md flex justify-stretch items-center"
+      class="wrapper w-full sm:w-11/12 mx-auto rounded-md flex justify-stretch items-center z-10"
       v-show="this.weather?.length > 0"
     >
+      <div
+        v-show="this.error.status"
+        class="bg-red-300 text-red-900 fixed top-7 left-1/2 transform -translate-x-1/2 z-20 px-3 py-1.5 rounded-lg border border-red-500"
+      >
+        {{ this.error.msg }}
+      </div>
       <div
         class="left-panel-wrapper z-10 bg-white relative shadow-md rounded-lg w-full px-3 sm:px-7 lg:px-4 py-10 sm:my-10 flex flex-col lg:flex-row lg:justify-around max-w-7xl mx-auto"
       >
@@ -14,8 +20,10 @@
         <div class="mt-12">
           <div class="flex items-center justify-center lg:justify-start">
             <AddCityForm
+              :submitFn="handleCityAdd"
               :singleCity="true"
               :placeholder="`Add a city to your list`"
+              :cityAlreadyAdded="this.cityAlreadyAdded"
             />
           </div>
           <div class="relative sm:left-8 mt-10 flex flex-col items-center">
@@ -24,39 +32,7 @@
             </h2>
             <div class="mt-8">
               <h3 class="my-5 font-medium">Your cities</h3>
-              <ul
-                class="odd:bg-sky-50 overflow-y-scroll scroll-smooth"
-                style="max-height: 420px"
-              >
-                <li
-                  class="flex text-gray-700 space-x-3 sm:space-x-10 w-max text-xs sm:text-sm lg:space-x-14 py-4 pr-5"
-                >
-                  <span class="w-28 md:w-32" data-name>Republic of Poland</span>
-                  <span class="flex w-16 sm:w-20 items-center">
-                    <img
-                      src="@/assets/termometer.svg"
-                      class="text-blue-400 text-xl mr-1"
-                      alt="Temperature"
-                    />
-                    20 °C
-                  </span>
-                  <span class="flex items-center w-11">
-                    <img
-                      src="@/assets/humidity.svg"
-                      class="text-blue-400 text-2xl mr-1"
-                      alt="Humidity"
-                    />
-                    63
-                  </span>
-                  <button
-                    class="text-xs font-medium transform hover:bg-blue-400 hover:text-white hover:-translate-y-0.5 active:translate-y-0.5 focus:translate-y-0.5 px-2 py-1 mr-2 transition duration-300 hover:shadow-md"
-                    data-lat="{city.coord.lat}"
-                    data-lon="{city.coord.lon}"
-                  >
-                    More
-                  </button>
-                </li>
-              </ul>
+              <Table :data="this.weather || []" />
             </div>
           </div>
         </div>
@@ -121,6 +97,7 @@ import UserInformation from '@/components/UserInformation/UserInformation';
 import axios from 'axios';
 import { API_KEY } from '@/constants';
 import AddCityForm from '@/components/Forms/AddCityForm.vue';
+import Table from '@/components/Table/Table';
 
 export default {
   name: 'weather-page',
@@ -128,12 +105,14 @@ export default {
     CreateCitiesList,
     UserInformation,
     AddCityForm,
+    Table,
   },
   data() {
     return {
       observedCities: [],
       weather: ['Test'],
       citiesFounded: false,
+      cityAlreadyAdded: false,
       error: {
         status: false,
         msg: '',
@@ -147,6 +126,13 @@ export default {
     // );
   },
   methods: {
+    _showHideError(msg) {
+      this.error = { status: true, msg };
+      setTimeout(() => {
+        this.error = { status: false, msg: '' };
+      }, 2000);
+    },
+
     _renderRequestsForCountries() {
       return this.observedCities.map(({ id }) => {
         return axios.get(
@@ -163,6 +149,36 @@ export default {
       }));
     },
 
+    async handleCityAdd(cityName, isCityInvalid) {
+      try {
+        if (isCityInvalid) {
+          this._showHideError('Please provide a valid city name!');
+          return;
+        }
+        if (this.weather.some(cityData => cityData.name === cityName)) {
+          this._showHideError('This city is already on your list!');
+          return;
+        }
+
+        const loadedCity = this.fetchCitiesFromFile([cityName], false);
+
+        if (!loadedCity) {
+          this._showHideError(
+            "Sorry, but this country doesn't exist in our database!"
+          );
+          return;
+        }
+
+        this.observedCities = [...this.observedCities, loadedCity];
+
+        await this.getAPIData();
+
+        console.log(this.weather);
+      } catch (err) {
+        this._showHideError('Sorry but we cannot load the city');
+      }
+    },
+
     async getAPIData() {
       console.log('CALLED');
       try {
@@ -171,16 +187,14 @@ export default {
         ).then(citiesWeather => {
           const updatedCitiesList = this._attachWeatherToCities(citiesWeather);
           this.weather = updatedCitiesList;
-          console.log(this.weather, 'DUNNO');
         });
       } catch (err) {
         console.log(err);
-        this.error = { status: true, msg: 'We could not load the resources' };
-        setTimeout(() => (this.error.status = false), 2000);
+        this._showHideError('We could not load the resources');
       }
     },
 
-    fetchCountriesFromFile(cities, manyCities = true) {
+    fetchCitiesFromFile(cities, manyCities = true) {
       let returnedCity = {};
 
       cities.forEach(cityName => {
@@ -199,16 +213,13 @@ export default {
           }
         }
       });
-      this.getAPIData();
 
-      // if (!this.citiesFounded)
-      //* Display Alert Later
-      // controlAlertDisplay(
-      //   setErrorMsg,
-      //   `Sorry but our database does not include selected ${
-      //     userCities.length > 1 ? 'cities' : 'city'
-      //   }`
-      // );
+      if (!this.citiesFounded)
+        this._showHideError(
+          `Sorry but our database does not include selected ${
+            cities.length > 1 ? 'cities' : 'city'
+          }`
+        );
 
       if (Object.keys(returnedCity).length > 0) return returnedCity;
     },
