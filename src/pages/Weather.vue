@@ -13,7 +13,7 @@
       >
         {{ this.error.msg }}
       </div>
-      <div class="left-panel-wrapper">
+      <div class="lg:h-188">
         <UserInformation />
         <div class="mt-12">
           <div class="flex items-center justify-center lg:justify-start">
@@ -116,18 +116,7 @@ export default {
           },
         },
       ],
-      lineChartData: {
-        labels: ['9 AM', '11 AM', '9 AM', '9 AM', '9 AM', '9 AM'],
-        datasets: [
-          {
-            label: 'Celsius Degress',
-            fill: false,
-            data: [86, 114, 106, 106, 107, 111],
-            borderColor: 'rgb(76, 192, 192)',
-            backgroundColor: 'rgba(76, 192, 192, 0.5)',
-          },
-        ],
-      },
+      lineChartData: {},
       hourlyData: [],
       citiesFounded: false,
       cityAlreadyAdded: false,
@@ -191,6 +180,23 @@ export default {
       setTimeout(() => (element.scrollTop = element.scrollHeight + 57), 500);
     },
 
+    _setChartData() {
+      const labels = this.hourlyData[1].map(data => data.time);
+      const data = this.hourlyData[1].map(data => data.temp.toFixed(1));
+      this.lineChartData = {
+        labels,
+        datasets: [
+          {
+            label: 'Celsius Degress',
+            fill: false,
+            data,
+            borderColor: 'rgb(76, 192, 192)',
+            backgroundColor: 'rgba(76, 192, 192, 0.5)',
+          },
+        ],
+      };
+    },
+
     async handleCityAdd(cityName, isCityInvalid) {
       try {
         if (isCityInvalid) {
@@ -232,6 +238,8 @@ export default {
           city,
           this._formatHourlyData(dataOverTime.data.hourly.slice(0, 12)),
         ];
+
+        this._setChartData();
       } catch (err) {
         this._showHideError('Sorry but we could not load the data!');
       }
@@ -292,10 +300,6 @@ export default {
 
 .content-wrapper {
   min-height: 750px !important;
-}
-
-.left-panel-wrapper {
-  height: 750px !important;
 }
 
 .right-panel-wrapper {
