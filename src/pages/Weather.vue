@@ -41,26 +41,25 @@
       <div
         class="right-panel-wrapper mt-12 text-center font-medium relative lg:w-80 pb-10 mb-12"
       >
-        <div v-show="this.hourlyData.length === 0">
+        <div v-show="!this.hourlyData?.city">
           <h5
             className="mt-5 lg:mt-0 lg:absolute lg:top-1/2 lg:transform lg:-translate-y-1/2 font-normal text-gray-500"
           >
             Click on
-            <span className="font-semibold text-sky-700">More</span> button to
-            see hourly weather
+            <span className="font-semibold text-sky-700 animate-pulse"
+              >More</span
+            >
+            button to see hourly weather
           </h5>
         </div>
         <div
-          v-show="this.hourlyData.length > 0"
+          v-show="this.hourlyData?.city"
           class="mt-4 flex flex-col justify-around"
         >
-          <h4 class="text-sky-800 mt-10 lg:mt-0">
-            Keep Track Of Hourly Weather
-          </h4>
-
-          <h5 class="my-8 text-xl uppercase text-cyan-600">
-            {{ this.hourlyData[0] }}
+          <h5 class="mt-8 mb-3 text-3xl text-cyan-600">
+            {{ this.hourlyData?.city || '' }}
           </h5>
+          <span class="text-lg text-blue-500 mb-5">{{ this.hourlyData?.temp }} °C</span>
           <div class="mt-4 flex flex-col justify-around">
             <div>
               <h6>Temperature</h6>
@@ -71,7 +70,7 @@
               </div>
             </div>
             <div>
-              <BarChart :data="this.hourlyData" chartTitle="Humidity" />
+              <BarChart :data="this.hourlyData.weather" chartTitle="Humidity" />
             </div>
           </div>
         </div>
@@ -115,16 +114,21 @@ export default {
       },
     };
   },
-  created() {
-    // window.addEventListener(
-    //   'beforeunload',
-    //   localStorage.removeItem('authenticated')
-    // );
-  },
   mounted() {
     // console.log(this.cookies.get('auth-token'));
   },
   methods: {
+    _setStorageData(data) {
+      localStorage.setItem('weatherData', JSON.stringify(data));
+    },
+
+    _getStorageData() {
+      const weatherData = JSON.parse(localStorage.getItem('weatherData'));
+      if (!weatherData) return;
+
+      return weatherData;
+    },
+
     _showHideError(msg) {
       this.error = { status: true, msg };
       setTimeout(() => {
@@ -145,7 +149,7 @@ export default {
         `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,daily,alerts&units=metric&appid=${API_KEY}`
       );
     },
-    /* eslint-disable */
+
     _attachWeatherToCities(weatherData) {
       return this.observedCities.map((data, i) => ({
         ...data,
@@ -161,7 +165,7 @@ export default {
           hour12: true,
         }).format(new Date(dt * 1000)),
         humidity,
-        temp,
+        temp: temp.toFixed(1),
       }));
 
       const finalData = newData.filter((_, i) => !(i % 2));
@@ -173,13 +177,14 @@ export default {
     },
 
     _setChartData() {
-      const labels = this.hourlyData[1].map(data => data.time);
-      const data = this.hourlyData[1].map(data => data.temp.toFixed(1));
+      console.log(this.hourlyData);
+      const labels = this.hourlyData.weather.map(data => data.time);
+      const data = this.hourlyData.weather.map(data => data.temp);
       this.lineChartData = {
         labels,
         datasets: [
           {
-            label: 'Celsius Degress',
+            label: 'Celsius Degrees',
             fill: false,
             data,
             borderColor: 'rgb(76, 192, 192)',
@@ -226,13 +231,19 @@ export default {
       try {
         const dataOverTime = await this._renderRequestForInTimeData(lat, lon);
 
-        this.hourlyData = [
+        const { temp } = this.weather.find(data => data.name === city);
+
+        this.hourlyData = {
           city,
-          this._formatHourlyData(dataOverTime.data.hourly.slice(0, 12)),
-        ];
+          temp,
+          weather: this._formatHourlyData(
+            dataOverTime.data.hourly.slice(0, 12)
+          ),
+        };
 
         this._setChartData();
       } catch (err) {
+        console.log(err);
         this._showHideError('Sorry but we could not load the data!');
       }
     },
@@ -256,11 +267,16 @@ export default {
 
       cities.forEach(cityName => {
         for (let i = 0, arrLen = citiesJson.length; i < arrLen; i++) {
-          if (citiesJson[i].name === cityName) {
+          if (
+            citiesJson[i].name === cityName ||
+            (this.observedCities.some(
+              city => city.country !== citiesJson[i].country
+            ) &&
+              cityName === citiesJson[i].name)
+          ) {
             if (manyCities) {
               this.observedCities = [...this.observedCities, citiesJson[i]];
               this.citiesFounded = true;
-              this.getAPIData();
             }
 
             if (!manyCities) {
@@ -268,6 +284,7 @@ export default {
               returnedCity = citiesJson[i];
             }
 
+            this._setStorageData(this.observedCities);
             break;
           }
         }
@@ -279,8 +296,10 @@ export default {
           }`
         );
 
-      if(this.observedCities.length !== cities.length) {
-        this._showHideError('Sorry, but we could not load all the cities.')
+      if (manyCities) this.getAPIData();
+
+      if (this.observedCities.length !== cities.length) {
+        this._showHideError('Sorry, but we could not load all the cities.');
       }
 
       if (Object.keys(returnedCity).length > 0) return returnedCity;

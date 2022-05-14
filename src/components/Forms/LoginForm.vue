@@ -78,7 +78,6 @@ export default {
       this.isPasswordValid = this.login === LOGIN;
 
       if (this.isLoginValid && this.isPasswordValid) {
-        localStorage.setItem('authenticated', JSON.stringify(true));
         this.cookies.set(
           'auth-token',
           `${String(Date.now()).slice(-10)}${Math.random()}`.replace('.', ''),
