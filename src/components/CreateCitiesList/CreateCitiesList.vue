@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="w-full">
     <h1
       className="font-bold uppercase text-green-600 text-center sm:text-2xl lg:text-3xl"
     >

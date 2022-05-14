@@ -3,7 +3,7 @@
     :class="[
       singleCity
         ? 'flex-row items-center justify-center lg:justify-start'
-        : 'py-8 flex-col',
+        : 'py-8 flex-col items-center',
       'flex',
     ]"
     @submit="submitForm"
@@ -20,8 +20,8 @@
         <input
           @focus="this.hideErrorMessage"
           :class="[
-            placeholder ? 'w-44 sm:w-64 pl-9 text-xs sm:text-base' : '',
-            'focus:border-yellow-600 border-gray-300, transition-all duration-200 py-1.5 mt-1 w-64 max-w-xs outline-none px-1.5 rounded-sm border focus:outline-none focus:border',
+            placeholder ? 'w-44 sm:w-64 text-xs sm:text-base' : 'w-52 sm:w-80',
+            'focus:border-yellow-600 border-gray-300, transition-all duration-200 pl-9 py-1.5 mt-1 max-w-xs outline-none px-1.5 rounded-sm border focus:outline-none focus:border',
           ]"
           v-model="city"
           id="city"
@@ -53,7 +53,7 @@ export default {
     submitFn: Function,
     hideError: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     cityAlreadyAdded: Boolean,
     singleCity: Boolean,

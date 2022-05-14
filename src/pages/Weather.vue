@@ -1,6 +1,6 @@
 <template>
-  <div class="flex items-stretch sm:items-center justify-center min-h-screen">
-    <div class="block-wrapper block mt-16" v-show="this.weather?.length === 0">
+  <div class="flex items-stretch sm:items-center justify-stretch min-h-screen">
+    <div class="block-wrapper mt-16 w-full" v-show="this.weather?.length === 0">
       <CreateCitiesList :fetchCitiesFromFile="fetchCitiesFromFile" />
     </div>
     <div
@@ -105,17 +105,7 @@ export default {
   data() {
     return {
       observedCities: [],
-      weather: [
-        {
-          name: 'Republic of Poladn',
-          temp: 27.3,
-          humidity: 63,
-          coord: {
-            lat: 27.34234,
-            lon: 21.2342,
-          },
-        },
-      ],
+      weather: [],
       lineChartData: {},
       hourlyData: [],
       citiesFounded: false,
@@ -246,7 +236,6 @@ export default {
     },
 
     async getAPIData() {
-      console.log('CALLED');
       try {
         await Promise.all(
           this._renderRequestsForCountries(this.observedCities)
@@ -266,9 +255,11 @@ export default {
       cities.forEach(cityName => {
         for (let i = 0, arrLen = citiesJson.length; i < arrLen; i++) {
           if (citiesJson[i].name === cityName) {
-            if (manyCities)
+            if (manyCities) {
               this.observedCities = [...this.observedCities, citiesJson[i]];
-            this.citiesFounded = true;
+              this.citiesFounded = true;
+              this.getAPIData();
+            }
 
             if (!manyCities) {
               this.citiesFounded = true;
