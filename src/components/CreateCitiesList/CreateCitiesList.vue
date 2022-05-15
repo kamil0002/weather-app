@@ -1,7 +1,7 @@
 <template>
   <div class="w-full">
     <h1
-      className="font-bold uppercase text-green-600 text-center sm:text-2xl lg:text-3xl"
+      class="font-bold uppercase text-green-600 text-center sm:text-2xl lg:text-3xl"
     >
       Create cities watchlist
     </h1>
@@ -11,7 +11,7 @@
       :cityAlreadyAdded="this.cityAlreadyAdded"
     />
     <div
-      className="mt-4 flex space-x-4 w-11/12 sm:w-5/6 mx-auto flex-wrap justify-center max-h-80 overflow-y-scroll py-4"
+      class="mt-4 flex space-x-4 w-11/12 sm:w-5/6 mx-auto flex-wrap justify-center max-h-80 overflow-y-scroll py-4"
     >
       <CityChip
         :key="city.name"
@@ -57,7 +57,7 @@ export default {
         return;
       }
 
-      this.cities = [...this.cities, city];
+      this.cities = [...this.cities, city.trim()];
     },
 
     hideError() {

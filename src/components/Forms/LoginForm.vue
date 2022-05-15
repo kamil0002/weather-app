@@ -5,7 +5,7 @@
     autoComplete="off"
   >
     <div class="mt-4">
-      <label htmlFor="{name}" className="block"> Login </label>
+      <label htmlFor="{name}" class="block"> Login </label>
       <input
         :class="[
           this.login === this.validLogin
@@ -23,7 +23,7 @@
     </div>
 
     <div class="mt-4">
-      <label htmlFor="{name}" className="block"> Password </label>
+      <label htmlFor="{name}" class="block"> Password </label>
       <input
         :class="[
           this.password === this.validPassword

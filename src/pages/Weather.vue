@@ -173,12 +173,15 @@ export default {
           this._showHideError('Please provide a valid city name!');
           return;
         }
-        if (this.weather.some(cityData => cityData.name === cityName)) {
+        if (this.weather.some(cityData => cityData.name === cityName.trim())) {
           this._showHideError('This city is already on your list!');
           return;
         }
 
-        const loadedCity = await this.fetchCitiesFromFile([cityName], false);
+        const loadedCity = await this.fetchCitiesFromFile(
+          [cityName.trim()],
+          false
+        );
 
         if (!loadedCity) {
           this._showHideError(
@@ -233,6 +236,7 @@ export default {
 
     async getAPIData() {
       try {
+  
         await Promise.all(
           apiRequests.renderRequestsForCities(this.observedCities)
         ).then(citiesWeather => {
@@ -249,16 +253,9 @@ export default {
 
     async fetchCitiesFromFile(cities, manyCities = true) {
       let returnedCity = {};
-
       cities.forEach(cityName => {
         for (let i = 0, arrLen = citiesJson.length; i < arrLen; i++) {
-          if (
-            citiesJson[i].name === cityName ||
-            (this.observedCities.some(
-              city => city.country !== citiesJson[i].country
-            ) &&
-              cityName === citiesJson[i].name)
-          ) {
+          if (citiesJson[i].name.toLowerCase() === cityName.toLowerCase()) {
             if (manyCities) {
               this.observedCities = [...this.observedCities, citiesJson[i]];
               this.citiesFounded = true;

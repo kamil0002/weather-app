@@ -1,6 +1,6 @@
 <template>
   <div
-    className="bg-white w-max px-2 md:px-4 py-1 mt-3 shadow-md rounded-sm flex items-center"
+    class="bg-white w-max px-2 md:px-4 py-1 mt-3 shadow-md rounded-sm flex items-center"
   >
     <img
       @click="handleClick"
