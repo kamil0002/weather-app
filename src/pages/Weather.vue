@@ -95,7 +95,7 @@ import Table from '@/components/Table/Table';
 import BarChart from '@/components/BarChart/BarChart';
 import LineChart from '@/components/LineChart/LineChart';
 import Spinner from '@/components/Spinner/Spinner';
-import { API_REFRESH_RATE } from '../constants';
+import { API_REFRESH_RATE } from '@/constants';
 
 import {
   formatHourlyData,
@@ -187,7 +187,7 @@ export default {
           return;
         }
 
-this.observedCities = [...this.observedCities, loadedCity];
+        this.observedCities = [...this.observedCities, loadedCity];
 
         await this.getAPIData();
 
