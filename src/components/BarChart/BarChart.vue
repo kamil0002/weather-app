@@ -1,11 +1,11 @@
 <template>
-  <div>
+  <div class="mt-8">
     <h6>{{ chartTitle }}</h6>
     <div class="flex space-x-4 justify-center">
       <div
         v-for="hourlyData in data"
         :key="hourlyData.time + hourlyData.humidity + Math.random()"
-        class="flex flex-col justify-end items-center mt-4 mb-7"
+        class="flex flex-col justify-end items-center mt-4"
       >
         <span class="text-xs">{{ hourlyData.humidity }}</span>
         <div

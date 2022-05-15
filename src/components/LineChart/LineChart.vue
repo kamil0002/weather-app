@@ -1,10 +1,15 @@
 <template>
-  <Line
-    :chart-options="chartOptions"
-    :chart-data="chartData"
-    :chart-id="chartId"
-    :styles="styles"
-  />
+  <div>
+    <h6>{{ title }}</h6>
+    <div class="flex justify-center mx-auto md:w-80 lg:w-80 h-64 mt-4">
+      <Line
+        :chart-options="chartOptions"
+        :chart-data="chartData"
+        :chart-id="chartId"
+        :styles="styles"
+      />
+    </div>
+  </div>
 </template>
 
 <script>
@@ -34,6 +39,10 @@ export default {
   name: 'LinerChart',
   components: { Line },
   props: {
+    title: {
+      type: String,
+      require: true,
+    },
     chartData: {
       type: Object,
       require: true,

@@ -38,14 +38,14 @@
               </button>
               <Table
                 :data="this.weather"
-                :showInTimeData="this.showInTimeData"
+                @display-hourly-data="this.showInTimeData"
               />
             </div>
           </div>
         </div>
       </div>
       <div
-        class="right-panel-wrapper mt-12 text-center font-medium relative lg:w-80 pb-10 mb-12"
+        class="mt-12 text-center font-medium relative lg:w-80 lg:h-167 mb-12"
       >
         <div
           v-show="this.loading"
@@ -53,14 +53,15 @@
         >
           <Spinner />
         </div>
-        <div v-show="!this.hourlyData?.city && !this.loading">
+        <div
+          class="select-none"
+          v-show="!this.hourlyData?.city && !this.loading"
+        >
           <h5
-            className="mt-5 lg:mt-0 lg:absolute lg:top-1/2 lg:transform lg:-translate-y-1/2 font-normal text-gray-500"
+            class="mt-5 lg:mt-0 lg:absolute lg:top-1/2 lg:transform lg:-translate-y-1/2 font-normal text-gray-500"
           >
             Click on
-            <span className="font-semibold text-sky-700 animate-pulse"
-              >More</span
-            >
+            <span class="font-semibold text-sky-700 animate-pulse">More</span>
             button to see hourly weather
           </h5>
         </div>
@@ -75,17 +76,9 @@
             >{{ this.hourlyData?.temp?.toFixed(1) }} °C</span
           >
           <div class="mt-4 flex flex-col justify-around">
-            <div>
-              <h6>Temperature</h6>
-              <div
-                class="flex justify-center mx-auto md:w-80 lg:w-80 h-64 mt-4 mb-10"
-              >
-                <LineChart :chartData="lineChartData" />
-              </div>
-            </div>
-            <div>
-              <BarChart :data="this.hourlyData.weather" chartTitle="Humidity" />
-            </div>
+            <LineChart :chartData="lineChartData" title="Temperature" />
+
+            <BarChart :data="this.hourlyData.weather" chartTitle="Humidity" />
           </div>
         </div>
       </div>
@@ -248,7 +241,7 @@ export default {
           return;
         }
 
-        const loadedCity = this.fetchCitiesFromFile([cityName], false);
+        const loadedCity = await this.fetchCitiesFromFile([cityName], false);
 
         if (!loadedCity) {
           this._showHideError(
@@ -256,7 +249,7 @@ export default {
           );
           return;
         }
-
+        console.log(loadedCity);
         this.observedCities = [...this.observedCities, loadedCity];
 
         await this.getAPIData();
@@ -277,7 +270,7 @@ export default {
       }
     },
 
-    async showInTimeData({ lat, lon, city }) {
+    async showInTimeData(lat, lon, city) {
       try {
         this.loading = true;
         const dataOverTime = await this._renderRequestForInTimeData(lat, lon);
@@ -307,6 +300,7 @@ export default {
         ).then(citiesWeather => {
           const updatedCitiesList = this._attachWeatherToCities(citiesWeather);
           this.weather = updatedCitiesList;
+          console.log(this.weather);
         });
       } catch (err) {
         if (err.message.includes('undefined')) return;
@@ -314,7 +308,7 @@ export default {
       }
     },
 
-    fetchCitiesFromFile(cities, manyCities = true) {
+    async fetchCitiesFromFile(cities, manyCities = true) {
       let returnedCity = {};
 
       cities.forEach(cityName => {
@@ -334,13 +328,13 @@ export default {
             if (!manyCities) {
               this.citiesFounded = true;
               returnedCity = citiesJson[i];
+              this._setStorageData([...this.observedCities, citiesJson[i]]);
             }
-
-            this._setStorageData(this.observedCities);
             break;
           }
         }
       });
+
       if (!this.citiesFounded)
         this._showHideError(
           `Sorry but our database does not include selected ${
@@ -348,16 +342,24 @@ export default {
           }`
         );
 
-      if (manyCities) {
-        this.getAPIData();
-        this.intervalId = setInterval(
-          () => this.getAPIData(),
-          API_REFRESH_RATE * 1000
-        );
-      }
+      try {
+        if (manyCities) {
+          await this.getAPIData().then(() => {
+            if (this.observedCities.length !== cities.length) {
+              this._showHideError(
+                'Sorry, but we could not load all the cities.'
+              );
+            }
 
-      if (this.observedCities.length !== cities.length) {
-        this._showHideError('Sorry, but we could not load all the cities.');
+            this._setStorageData(this.observedCities);
+            this.intervalId = setInterval(
+              () => this.getAPIData(),
+              API_REFRESH_RATE * 1000
+            );
+          });
+        }
+      } catch (err) {
+        this._showHideError('Some unexpected error occurred!');
       }
 
       if (Object.keys(returnedCity).length > 0) return returnedCity;
@@ -368,14 +370,10 @@ export default {
 
 <style scoped>
 .block-wrapper {
-  min-height: 100vh !important;
+  min-height: 100vh;
 }
 
 .content-wrapper {
-  min-height: 750px !important;
-}
-
-.right-panel-wrapper {
-  height: 670px !important;
+  min-height: 750px;
 }
 </style>
