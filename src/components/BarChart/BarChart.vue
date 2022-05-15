@@ -20,10 +20,16 @@
 
 <script>
 export default {
-  name: 'bar-chart-cmp',
+  name: 'BarChart',
   props: {
-    data: Array,
-    chartTitle: String,
+    data: {
+      type: Array,
+      require: true,
+    },
+    chartTitle: {
+      type: String,
+      require: true,
+    },
   },
 };
 </script>

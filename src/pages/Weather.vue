@@ -95,15 +95,18 @@ import Table from '@/components/Table/Table';
 import BarChart from '@/components/BarChart/BarChart';
 import LineChart from '@/components/LineChart/LineChart';
 import Spinner from '@/components/Spinner/Spinner';
-
-import axios from 'axios';
-import { API_KEY } from '@/constants';
 import { API_REFRESH_RATE } from '../constants';
 
-import { storageFn } from '@/utils';
+import {
+  formatHourlyData,
+  storageFn,
+  attachWeatherToCities,
+  apiRequests,
+  buildLineChartData,
+} from '@/utils';
 
 export default {
-  name: 'weather-page',
+  name: 'WeatherPage',
   components: {
     CreateCitiesList,
     UserInformation,
@@ -152,61 +155,8 @@ export default {
       }, 2000);
     },
 
-    _renderRequestsForCities() {
-      return this.observedCities.map(({ id }) => {
-        return axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?id=${id}&units=metric&appid=${API_KEY}`
-        );
-      });
-    },
-
-    _renderRequestForInTimeData(lat, lon) {
-      return axios.get(
-        `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,daily,alerts&units=metric&appid=${API_KEY}`
-      );
-    },
-
-    _attachWeatherToCities(weatherData) {
-      return this.observedCities.map((data, i) => ({
-        ...data,
-        temp: weatherData[i].data.main.temp,
-        humidity: weatherData[i].data.main.humidity,
-      }));
-    },
-
-    _formatHourlyData(data) {
-      const newData = data.map(({ temp, humidity, dt }) => ({
-        time: new Intl.DateTimeFormat('en-US', {
-          hour: 'numeric',
-          hour12: true,
-        }).format(new Date(dt * 1000)),
-        humidity,
-        temp: temp.toFixed(1),
-      }));
-
-      const finalData = newData.filter((_, i) => !(i % 2));
-      return finalData;
-    },
-
     _scrollTableToView(element) {
       setTimeout(() => (element.scrollTop = element.scrollHeight + 57), 500);
-    },
-
-    _setChartData() {
-      const labels = this.hourlyData.weather.map(data => data.time);
-      const data = this.hourlyData.weather.map(data => data.temp);
-      this.lineChartData = {
-        labels,
-        datasets: [
-          {
-            label: 'Celsius Degrees',
-            fill: false,
-            data,
-            borderColor: 'rgb(76, 192, 192)',
-            backgroundColor: 'rgba(76, 192, 192, 0.5)',
-          },
-        ],
-      };
     },
 
     clearCitiesList() {
@@ -236,8 +186,8 @@ export default {
           );
           return;
         }
-        console.log(loadedCity);
-        this.observedCities = [...this.observedCities, loadedCity];
+
+this.observedCities = [...this.observedCities, loadedCity];
 
         await this.getAPIData();
 
@@ -253,7 +203,6 @@ export default {
             this.$el.querySelector('ul').scrollHeight;
         }, 500);
       } catch (err) {
-        console.log(err);
         this._showHideError('Sorry but we cannot load the city');
       }
     },
@@ -261,19 +210,20 @@ export default {
     async showInTimeData(lat, lon, city) {
       try {
         this.loading = true;
-        const dataOverTime = await this._renderRequestForInTimeData(lat, lon);
+        const dataOverTime = await apiRequests.renderRequestForInTimeData(
+          lat,
+          lon
+        );
 
         const { temp } = this.weather.find(data => data.name === city);
 
         this.hourlyData = {
           city,
           temp,
-          weather: this._formatHourlyData(
-            dataOverTime.data.hourly.slice(0, 12)
-          ),
+          weather: formatHourlyData(dataOverTime.data.hourly.slice(0, 12)),
         };
 
-        this._setChartData();
+        this.lineChartData = buildLineChartData(this.hourlyData.weather);
       } catch (err) {
         this._showHideError('Sorry but we could not load the data!');
       } finally {
@@ -284,11 +234,12 @@ export default {
     async getAPIData() {
       try {
         await Promise.all(
-          this._renderRequestsForCities(this.observedCities)
+          apiRequests.renderRequestsForCities(this.observedCities)
         ).then(citiesWeather => {
-          const updatedCitiesList = this._attachWeatherToCities(citiesWeather);
-          this.weather = updatedCitiesList;
-          console.log(this.weather);
+          this.weather = attachWeatherToCities(
+            citiesWeather,
+            this.observedCities
+          );
         });
       } catch (err) {
         if (err.message.includes('undefined')) return;

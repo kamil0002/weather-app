@@ -29,7 +29,14 @@
         {{ city.humidity }}
       </span>
       <button
-        @click="$emit('display-hourly-data', city.coord.lat, city.coord.lon, city.name)"
+        @click="
+          $emit(
+            'display-hourly-data',
+            city.coord.lat,
+            city.coord.lon,
+            city.name
+          )
+        "
         class="text-xs font-medium transform hover:bg-blue-400 hover:text-white hover:-translate-y-0.5 active:translate-y-0.5 focus:translate-y-0.5 px-2 py-1 mr-2 transition duration-300 hover:shadow-md"
       >
         More
@@ -40,9 +47,12 @@
 
 <script>
 export default {
-  name: 'table-cmp',
+  name: 'cities-table',
   props: {
-    data: Array,
+    data: {
+      type: Array,
+      require: true,
+    },
   },
 };
 </script>

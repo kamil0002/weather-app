@@ -50,7 +50,10 @@ import Button from '../Button/Button.vue';
 export default {
   name: 'AddCityForm',
   props: {
-    submitFn: Function,
+    submitFn: {
+      type: Function,
+      require: true,
+    },
     hideError: {
       type: Function,
       default: () => {},

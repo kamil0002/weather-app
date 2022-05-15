@@ -81,7 +81,7 @@ export default {
         this.cookies.set(
           'auth-token',
           `${String(Date.now()).slice(-10)}${Math.random()}`.replace('.', ''),
-          '24h'
+          '12h'
         );
         this.$router.push('/');
       }

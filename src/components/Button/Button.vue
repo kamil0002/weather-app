@@ -6,15 +6,18 @@
     ]"
     type="submit"
   >
-    {{buttonText}}
+    {{ buttonText }}
   </button>
 </template>
 
 <script>
 export default {
-  name: 'button-cmp',
+  name: 'submit-button',
   props: {
-    buttonText: String,
+    buttonText: {
+      type: String,
+      require: true,
+    },
     classes: {
       type: String,
       default: '',

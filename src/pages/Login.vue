@@ -14,7 +14,7 @@
 import Form from './../components/Forms/LoginForm.vue';
 
 export default {
-  name: 'login-page',
+  name: 'LoginPage',
   components: {
     Form,
   },

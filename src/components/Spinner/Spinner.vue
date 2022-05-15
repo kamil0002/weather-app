@@ -21,7 +21,7 @@
 
 <script>
 export default {
-  name: 'spinner-cmp'
+  name: 'loading-spinner'
 };
 </script>
 
