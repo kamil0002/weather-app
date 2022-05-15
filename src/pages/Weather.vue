@@ -100,6 +100,8 @@ import axios from 'axios';
 import { API_KEY } from '@/constants';
 import { API_REFRESH_RATE } from '../constants';
 
+import { storageFn } from '@/utils';
+
 export default {
   name: 'weather-page',
   components: {
@@ -128,7 +130,7 @@ export default {
     };
   },
   mounted() {
-    const storageData = this._getStorageData();
+    const storageData = storageFn.getStorageData('weatherData');
     if (storageData?.length > 0) {
       this.observedCities = storageData;
       this.getAPIData();
@@ -139,21 +141,6 @@ export default {
     }
   },
   methods: {
-    _setStorageData(data) {
-      localStorage.setItem('weatherData', JSON.stringify(data));
-    },
-
-    _getStorageData() {
-      const weatherData = JSON.parse(localStorage.getItem('weatherData'));
-      if (!weatherData) return;
-
-      return weatherData;
-    },
-
-    _emptyStorage() {
-      localStorage.removeItem('weatherData');
-    },
-
     _stopAPIRefreshing() {
       clearInterval(this.intervalId);
     },
@@ -227,7 +214,7 @@ export default {
       this.observedCities = [];
       this.hourlyData = {};
       clearInterval(this.intervalId);
-      this._emptyStorage();
+      storageFn.removeStorageItem('weatherData');
     },
 
     async handleCityAdd(cityName, isCityInvalid) {
@@ -266,6 +253,7 @@ export default {
             this.$el.querySelector('ul').scrollHeight;
         }, 500);
       } catch (err) {
+        console.log(err);
         this._showHideError('Sorry but we cannot load the city');
       }
     },
@@ -328,7 +316,10 @@ export default {
             if (!manyCities) {
               this.citiesFounded = true;
               returnedCity = citiesJson[i];
-              this._setStorageData([...this.observedCities, citiesJson[i]]);
+              storageFn.setStorageData('weatherData', [
+                ...this.observedCities,
+                citiesJson[i],
+              ]);
             }
             break;
           }
@@ -351,7 +342,7 @@ export default {
               );
             }
 
-            this._setStorageData(this.observedCities);
+            storageFn.setStorageData('weatherData', this.observedCities);
             this.intervalId = setInterval(
               () => this.getAPIData(),
               API_REFRESH_RATE * 1000
