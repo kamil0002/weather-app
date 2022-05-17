@@ -34,6 +34,7 @@
           'transition-all duration-200 py-1.5 mt-1 w-64 max-w-xs outline-none px-1.5 rounded-sm border focus:outline-none focus:border',
         ]"
         v-model="password"
+        type="password"
       />
       <span
         v-show="!this.isPasswordValid"

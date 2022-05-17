@@ -52,7 +52,12 @@ export default {
   methods: {
     onSubmit(city, isCityInvalid) {
       if (isCityInvalid) return;
-      if (this.cities.indexOf(city) !== -1) {
+      if (
+        this.cities.find(
+          addedCity =>
+            addedCity.trim().toLowerCase() === city.trim().toLowerCase()
+        )
+      ) {
         this.cityAlreadyAdded = true;
         return;
       }
