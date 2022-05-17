@@ -156,12 +156,17 @@ export default {
     if (storageData?.length > 0) {
       this.observedCities = storageData;
       this.loadingStorage = true;
-      this.getAPIData().then(() => {
-      this.intervalId = setInterval(
-        () => this.getAPIData(),
-        API_REFRESH_RATE * 1000
-      );
-      }).catch(() => this._showHideError('An error occured during data loading')).finally(() => this.loadingStorage = false);
+      this.getAPIData()
+        .then(() => {
+          this.intervalId = setInterval(
+            () => this.getAPIData(),
+            API_REFRESH_RATE * 1000
+          );
+        })
+        .catch(() =>
+          this._showHideError('An error occured during data loading')
+        )
+        .finally(() => (this.loadingStorage = false));
     }
   },
   methods: {
@@ -194,12 +199,20 @@ export default {
           this._showHideError('Please provide a valid city name!');
           return;
         }
-        if (this.weather.some(cityData => cityData.name === cityName.trim())) {
+        if (
+          this.weather.some(
+            cityData =>
+              cityData.name.toLowerCase() === cityName.trim().toLowerCase()
+          )
+        ) {
           this._showHideError('This city is already on your list!');
           return;
         }
 
-        const loadedCities = await this.fetchCitiesFromFile([cityName], false);
+        const loadedCities = await this.fetchCitiesFromFile(
+          [cityName.trim()],
+          false
+        );
 
         if (loadedCities.length === 0) {
           this._showHideError(

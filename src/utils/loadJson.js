@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 export default async userCities => {
   return import('@/assets/city.list.json').then(async module => {
     try {

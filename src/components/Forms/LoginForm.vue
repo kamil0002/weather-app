@@ -7,6 +7,7 @@
     <div class="mt-4">
       <label htmlFor="{name}" class="block"> Login </label>
       <input
+        @focus="this.isLoginValid = true"
         :class="[
           this.login === this.validLogin
             ? 'focus:border-green-600 border-green-600'
@@ -16,7 +17,7 @@
         v-model="login"
       />
       <span
-        v-show="this.isLoginValid"
+        v-show="!this.isLoginValid"
         class="text-red-700 font-medium text-sm block mt-1"
         >Login incorrect</span
       >
@@ -25,6 +26,7 @@
     <div class="mt-4">
       <label htmlFor="{name}" class="block"> Password </label>
       <input
+        @focus="this.isPasswordValid = true"
         :class="[
           this.password === this.validPassword
             ? 'focus:border-green-600 border-green-600'
@@ -34,7 +36,7 @@
         v-model="password"
       />
       <span
-        v-show="this.isPasswordValid"
+        v-show="!this.isPasswordValid"
         class="text-red-700 font-medium text-sm block mt-1"
         >Password incorrect</span
       >
@@ -64,8 +66,8 @@ export default {
     return {
       validLogin: LOGIN,
       validPassword: PASSWORD,
-      isLoginValid: false,
-      isPasswordValid: false,
+      isLoginValid: true,
+      isPasswordValid: true,
       login: '',
       password: '',
     };
@@ -74,8 +76,8 @@ export default {
   methods: {
     onSubmit(e) {
       e.preventDefault();
-      this.isLoginValid = this.password === PASSWORD;
-      this.isPasswordValid = this.login === LOGIN;
+      this.isLoginValid = this.login === LOGIN;
+      this.isPasswordValid = this.password === PASSWORD;
 
       if (this.isLoginValid && this.isPasswordValid) {
         this.cookies.set(
