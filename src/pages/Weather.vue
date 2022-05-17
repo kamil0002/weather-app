@@ -56,6 +56,7 @@
               <Table
                 :data="this.weather"
                 @display-hourly-data="this.showInTimeData"
+                @delete-city="this.handleCityDelete"
               />
             </div>
           </div>
@@ -263,6 +264,12 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+
+    handleCityDelete(id) {
+      this.weather = this.weather.filter(w => w.id !== id);
+      this.observedCities = this.observedCities.filter(w => w.id !== id);
+      storageFn.setStorageData('weatherData', this.observedCities);
     },
 
     async getAPIData() {

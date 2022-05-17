@@ -11,7 +11,13 @@
         'flex bg-white text-gray-700 space-x-3 sm:space-x-10 w-max text-xs sm:text-sm lg:space-x-14 py-4 pr-5',
       ]"
     >
-      <div className="w-28 md:w-32">
+      <div class="w-28 md:w-32 flex items-center">
+        <img
+          class="mr-1 cursor-pointer"
+          src="@/assets/images/remove_city.svg"
+          alt="remove city"
+          @click="$emit('delete-city', city.id)"
+        />
         <span data-name>{{ city.name }}</span>
         <sub className="font-medium text-gray-600">({{ city.country }})</sub>
       </div>
