@@ -1,6 +1,22 @@
 <template>
-  <div class="flex items-stretch sm:items-center justify-center min-h-screen">
-    <div class="block-wrapper py-24 w-full" v-show="this.weather?.length === 0">
+  <div
+    v-if="
+      (this.fetchingFromFile && this.weather.length === 0) ||
+      this.loadingStorage
+    "
+    class="flex items-center fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+  >
+    <p class="font-medium text-2xl mr-3">Loading</p>
+    <Spinner />
+  </div>
+  <div
+    v-else
+    class="flex items-stretch sm:items-center justify-center min-h-screen"
+  >
+    <div
+      class="block-wrapper py-24 w-full"
+      v-show="this.weather?.length === 0 && !this.loadingStorage"
+    >
       <CreateCitiesList :fetchCitiesFromFile="fetchCitiesFromFile" />
     </div>
     <div
@@ -14,7 +30,7 @@
       v-show="this.weather?.length > 0"
     >
       <div class="lg:h-188">
-        <UserInformation :stopAPIRefreshing="_stopAPIRefreshing" />
+        <UserInformation :stopAPIRefreshing="this._stopAPIRefreshing" />
         <div class="mt-12">
           <div class="flex items-center justify-center lg:justify-start">
             <AddCityForm
@@ -28,7 +44,8 @@
             <h2 class="text-sky-800 tracking-wide font-semibold text-3xl">
               Weather Forecast
             </h2>
-            <div class="mt-8" v-show="this.weather">
+
+            <div class="mt-8" v-show="this.observedCities">
               <h3 class="my-5 font-medium">Your cities</h3>
               <button
                 @click="clearCitiesList"
@@ -87,7 +104,6 @@
 </template>
 
 <script>
-import citiesJson from '@/dev-data/city.list.json';
 import CreateCitiesList from '@/components/CreateCitiesList/CreateCitiesList';
 import UserInformation from '@/components/UserInformation/UserInformation';
 import AddCityForm from '@/components/Forms/AddCityForm';
@@ -103,6 +119,7 @@ import {
   attachWeatherToCities,
   apiRequests,
   buildLineChartData,
+  loadJson,
 } from '@/utils';
 
 export default {
@@ -119,6 +136,8 @@ export default {
   data() {
     return {
       loading: false,
+      fetchingFromFile: false,
+      loadingStorage: false,
       observedCities: [],
       weather: [],
       lineChartData: {},
@@ -136,23 +155,25 @@ export default {
     const storageData = storageFn.getStorageData('weatherData');
     if (storageData?.length > 0) {
       this.observedCities = storageData;
-      this.getAPIData();
+      this.loadingStorage = true;
+      this.getAPIData().then(() => {
       this.intervalId = setInterval(
         () => this.getAPIData(),
         API_REFRESH_RATE * 1000
       );
+      }).catch(() => this._showHideError('An error occured during data loading')).finally(() => this.loadingStorage = false);
     }
   },
   methods: {
-    _stopAPIRefreshing() {
-      clearInterval(this.intervalId);
-    },
-
     _showHideError(msg) {
       this.error = { status: true, msg };
       setTimeout(() => {
         this.error = { status: false, msg: '' };
       }, 2000);
+    },
+
+    _stopAPIRefreshing() {
+      clearInterval(this.intervalId);
     },
 
     _scrollTableToView(element) {
@@ -163,7 +184,7 @@ export default {
       this.weather = [];
       this.observedCities = [];
       this.hourlyData = {};
-      clearInterval(this.intervalId);
+      this._stopAPIRefreshing();
       storageFn.removeStorageItem('weatherData');
     },
 
@@ -178,28 +199,25 @@ export default {
           return;
         }
 
-        const loadedCity = await this.fetchCitiesFromFile(
-          [cityName.trim()],
-          false
-        );
+        const loadedCities = await this.fetchCitiesFromFile([cityName], false);
 
-        if (!loadedCity) {
+        if (loadedCities.length === 0) {
           this._showHideError(
             "Sorry, but this country doesn't exist in our database!"
           );
           return;
         }
 
-        this.observedCities = [...this.observedCities, loadedCity];
-
-        await this.getAPIData();
+        this.observedCities = [...this.observedCities, ...loadedCities];
 
         this._stopAPIRefreshing();
 
+        await this.getAPIData();
         this.intervalId = setInterval(
           () => this.getAPIData(),
           API_REFRESH_RATE * 1000
         );
+        storageFn.setStorageData('weatherData', this.observedCities);
 
         setTimeout(() => {
           this.$el.querySelector('ul').scrollTop =
@@ -236,7 +254,6 @@ export default {
 
     async getAPIData() {
       try {
-  
         await Promise.all(
           apiRequests.renderRequestsForCities(this.observedCities)
         ).then(citiesWeather => {
@@ -252,56 +269,27 @@ export default {
     },
 
     async fetchCitiesFromFile(cities, manyCities = true) {
-      let returnedCity = {};
-      cities.forEach(cityName => {
-        for (let i = 0, arrLen = citiesJson.length; i < arrLen; i++) {
-          if (citiesJson[i].name.toLowerCase() === cityName.toLowerCase()) {
-            if (manyCities) {
-              this.observedCities = [...this.observedCities, citiesJson[i]];
-              this.citiesFounded = true;
-            }
-
-            if (!manyCities) {
-              this.citiesFounded = true;
-              returnedCity = citiesJson[i];
-              storageFn.setStorageData('weatherData', [
-                ...this.observedCities,
-                citiesJson[i],
-              ]);
-            }
-            break;
-          }
-        }
-      });
-
-      if (!this.citiesFounded)
-        this._showHideError(
-          `Sorry but our database does not include selected ${
-            cities.length > 1 ? 'cities' : 'city'
-          }`
-        );
-
       try {
+        this.fetchingFromFile = true;
+        const data = await loadJson(cities);
+
         if (manyCities) {
-          await this.getAPIData().then(() => {
-            if (this.observedCities.length !== cities.length) {
-              this._showHideError(
-                'Sorry, but we could not load all the cities.'
-              );
-            }
+          this.observedCities = data;
+          await this.getAPIData();
+          storageFn.setStorageData('weatherData', data);
 
-            storageFn.setStorageData('weatherData', this.observedCities);
-            this.intervalId = setInterval(
-              () => this.getAPIData(),
-              API_REFRESH_RATE * 1000
-            );
-          });
+          this.intervalId = setInterval(
+            () => this.getAPIData(),
+            API_REFRESH_RATE * 1000
+          );
         }
-      } catch (err) {
-        this._showHideError('Some unexpected error occurred!');
-      }
 
-      if (Object.keys(returnedCity).length > 0) return returnedCity;
+        return data;
+      } catch (err) {
+        this._showHideError(err.message);
+      } finally {
+        this.fetchingFromFile = false;
+      }
     },
   },
 };

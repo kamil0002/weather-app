@@ -5,7 +5,7 @@
     <img
       @click="handleClick"
       class="cursor-pointer mr-1.5 sm:mr-2 w-4 sm:w-auto"
-      src="@/assets/delete-chip.svg"
+      src="@/assets/images/delete-chip.svg"
       alt="Delete Chip"
     />
     <span class="text-xs sm:text-sm">{{ cityName }}</span>

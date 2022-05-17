@@ -10,7 +10,7 @@
       class="flex items-center hover:bg-blue-400 hover:text-white mr-2 px-2 py-1 rounded-md font-medium transition-colors duration-150"
     >
       <span class="mr-2">Logout</span>
-      <img src="@/assets/logout-icon.svg" alt="Logout" />
+      <img src="@/assets/images/logout-icon.svg" alt="Logout" />
     </button>
   </div>
 </template>

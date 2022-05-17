@@ -14,7 +14,7 @@
       <div class="flex items-center">
         <img
           class="ml-2 absolute"
-          src="@/assets/magnifying-glass.svg"
+          src="@/assets/images/magnifying-glass.svg"
           alt="magnifying glass"
         />
         <input
@@ -40,7 +40,10 @@
       >
     </div>
 
-    <Button :classes="singleCity ? `bg-blue-500 ml-7` : ``" buttonText="add" />
+    <Button
+      :classes="singleCity ? `bg-blue-500 ml-7` : ``"
+      buttonText="add"
+    />
   </form>
 </template>
 

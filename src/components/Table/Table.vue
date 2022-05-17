@@ -11,10 +11,13 @@
         'flex bg-white text-gray-700 space-x-3 sm:space-x-10 w-max text-xs sm:text-sm lg:space-x-14 py-4 pr-5',
       ]"
     >
-      <span class="w-28 md:w-32" data-name>{{ city.name }}</span>
+      <div className="w-28 md:w-32">
+        <span data-name>{{ city.name }}</span>
+        <sub className="font-medium text-gray-600">({{ city.country }})</sub>
+      </div>
       <span class="flex w-16 sm:w-20 items-center">
         <img
-          src="@/assets/termometer.svg"
+          src="@/assets/images/termometer.svg"
           class="text-blue-400 text-xl mr-1"
           alt="Temperature"
         />
@@ -22,7 +25,7 @@
       </span>
       <span class="flex items-center w-11">
         <img
-          src="@/assets/humidity.svg"
+          src="@/assets/images/humidity.svg"
           class="text-blue-400 text-2xl mr-1"
           alt="Humidity"
         />
