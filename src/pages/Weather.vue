@@ -269,6 +269,7 @@ export default {
     handleCityDelete(id) {
       this.weather = this.weather.filter(w => w.id !== id);
       this.observedCities = this.observedCities.filter(w => w.id !== id);
+      if (this.observedCities.length === 0) clearInterval(this.intervalId);
       storageFn.setStorageData('weatherData', this.observedCities);
     },
 
